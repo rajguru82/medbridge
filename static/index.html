@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedBridge — Specialist Care, Closer to Home</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #059669;
+      --danger: #ef4444;
+      --bg: #f0f6ff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── Left panel ── */
+    .hero {
+      flex: 1;
+      background: linear-gradient(145deg, #1e40af 0%, #2563eb 50%, #0ea5e9 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 56px;
+      color: #fff;
+    }
+    .hero-logo { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+    .hero-logo span { opacity: .7; }
+    .hero h1 { font-size: 2.6rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+    .hero p  { font-size: 1.1rem; opacity: .85; line-height: 1.7; max-width: 420px; }
+    .hero-stats { display: flex; gap: 32px; margin-top: 48px; }
+    .stat-box { text-align: center; }
+    .stat-box .num  { font-size: 2rem; font-weight: 800; }
+    .stat-box .lbl  { font-size: .8rem; opacity: .75; margin-top: 2px; }
+
+    /* ── Right panel ── */
+    .auth-panel {
+      width: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 48px;
+      background: #fff;
+      box-shadow: -8px 0 32px rgba(0,0,0,.06);
+    }
+    .auth-box { width: 100%; }
+    .auth-box h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+    .auth-box .sub { color: var(--muted); margin-bottom: 28px; font-size: .95rem; }
+
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 28px; }
+    .tab-btn {
+      padding: 10px 24px;
+      border: none; background: none; cursor: pointer;
+      font-size: .95rem; font-weight: 600; color: var(--muted);
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: .2s;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: .85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: .95rem; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    select { cursor: pointer; }
+
+    .btn {
+      width: 100%; padding: 12px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: background .2s;
+      margin-top: 8px;
+    }
+    .btn:hover { background: var(--primary-dark); }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .alert {
+      padding: 10px 14px; border-radius: 8px;
+      font-size: .9rem; font-weight: 500; margin-bottom: 16px;
+      display: none;
+    }
+    .alert.success { background: #d1fae5; color: #065f46; display: block; }
+    .alert.error   { background: #fee2e2; color: #991b1b; display: block; }
+
+    .doctor-note {
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: 8px; padding: 12px 14px;
+      font-size: .82rem; color: #1e40af;
+      margin-top: 12px;
+    }
+
+    #doctor-fields { display: none; }
+
+    @media (max-width: 860px) {
+      body { flex-direction: column; }
+      .hero { padding: 40px 28px; }
+      .hero h1 { font-size: 1.9rem; }
+      .auth-panel { width: 100%; padding: 32px 24px; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left hero -->
+  <div class="hero">
+    <div class="hero-logo">🏥 Med<span>Bridge</span></div>
+    <h1>Specialist Care,<br />Closer to Home</h1>
+    <p>Connecting patients in tier 2 &amp; 3 cities with top specialists across India — through AI-powered triage and instant teleconsultation booking.</p>
+    <div class="hero-stats">
+      <div class="stat-box"><div class="num">10+</div><div class="lbl">Specialists</div></div>
+      <div class="stat-box"><div class="num">8</div><div class="lbl">Specialties</div></div>
+      <div class="stat-box"><div class="num">&lt;48h</div><div class="lbl">Avg. Wait Time</div></div>
+    </div>
+  </div>
+
+  <!-- Right auth -->
+  <div class="auth-panel">
+    <div class="auth-box">
+      <h2>Get Started</h2>
+      <p class="sub">Book a specialist consultation today</p>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('login')">Login</button>
+        <button class="tab-btn" onclick="showTab('register')">Register</button>
+      </div>
+
+      <div id="alert" class="alert"></div>
+
+      <!-- Login -->
+      <div id="login-tab">
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="login-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" />
+        </div>
+        <button class="btn" id="login-btn" onclick="doLogin()">Login</button>
+        <div class="doctor-note">
+          🩺 <strong>Demo doctor login:</strong> priya.sharma@medbridge.com / doctor123
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div id="register-tab" style="display:none">
+        <div class="form-group">
+          <label>Full name</label>
+          <input type="text" id="reg-name" placeholder="Rajguru Singh" />
+        </div>
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="reg-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Min 6 characters" />
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" id="reg-city" placeholder="Jamshedpur" />
+        </div>
+        <div class="form-group">
+          <label>I am a</label>
+          <select id="reg-role" onchange="toggleDoctorFields()">
+            <option value="patient">Patient</option>
+            <option value="doctor">Doctor</option>
+          </select>
+        </div>
+        <div id="doctor-fields">
+          <div class="form-group">
+            <label>Specialty</label>
+            <select id="reg-specialty">
+              <option>Cardiologist</option>
+              <option>Neurologist</option>
+              <option>Oncologist</option>
+              <option>Orthopedic</option>
+              <option>Gastroenterologist</option>
+              <option>Pulmonologist</option>
+              <option>Endocrinologist</option>
+              <option>General Physician</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Years of experience</label>
+            <input type="number" id="reg-exp" placeholder="5" min="0" />
+          </div>
+        </div>
+        <button class="btn" id="reg-btn" onclick="doRegister()">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Redirect if already logged in
+  const savedToken = localStorage.getItem('mb_token');
+  const savedRole  = localStorage.getItem('mb_role');
+  if (savedToken && savedRole) {
+    window.location.href = savedRole === 'doctor' ? '/doctor' : '/patient';
+  }
+
+  function showTab(tab) {
+    document.getElementById('login-tab').style.display    = tab === 'login'    ? '' : 'none';
+    document.getElementById('register-tab').style.display = tab === 'register' ? '' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    hideAlert();
+  }
+
+  function toggleDoctorFields() {
+    const isDr = document.getElementById('reg-role').value === 'doctor';
+    document.getElementById('doctor-fields').style.display = isDr ? '' : 'none';
+  }
+
+  function showAlert(type, msg) {
+    const el = document.getElementById('alert');
+    el.className = 'alert ' + type;
+    el.textContent = msg;
+  }
+  function hideAlert() {
+    document.getElementById('alert').className = 'alert';
+  }
+
+  async function doLogin() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { showAlert('error', 'Please fill in all fields.'); return; }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+
+    try {
+      const form = new URLSearchParams();
+      form.append('username', email);
+      form.append('password', password);
+
+      const res  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: form,
+      });
+      const data = await res.json();
+
+      if (!res.ok) { showAlert('error', data.detail || 'Login failed'); return; }
+
+      localStorage.setItem('mb_token', data.access_token);
+      localStorage.setItem('mb_role',  data.role);
+      localStorage.setItem('mb_name',  data.name);
+
+      window.location.href = data.role === 'doctor' ? '/doctor' : '/patient';
+    } catch {
+      showAlert('error', 'Network error. Please try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Login';
+    }
+  }
+
+  async function doRegister() {
+    const name     = document.getElementById('reg-name').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const city     = document.getElementById('reg-city').value.trim();
+    const role     = document.getElementById('reg-role').value;
+
+    if (!name || !email || !password) {
+      showAlert('error', 'Name, email and password are required.'); return;
+    }
+    if (password.length < 6) {
+      showAlert('error', 'Password must be at least 6 characters.'); return;
+    }
+
+    const body = { name, email, password, city, role };
+    if (role === 'doctor') {
+      body.specialty       = document.getElementById('reg-specialty').value;
+      body.experience_years = parseInt(document.getElementById('reg-exp').value) || 0;
+    }
+
+    const btn = document.getElementById('reg-btn');
+    btn.disabled = true; btn.textContent = 'Creating account…';
+
+    try {
+      const res  = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert('error', data.detail || 'Registration failed'); return; }
+
+      showAlert('success', 'Account created! Logging you in…');
+      // Auto-login
+      const form = new URLSearchParams();
+      form.append('username', email);
+      form.append('password', password);
+      const loginRes  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: form,
+      });
+      const loginData = await loginRes.json();
+      localStorage.setItem('mb_token', loginData.access_token);
+      localStorage.setItem('mb_role',  loginData.role);
+      localStorage.setItem('mb_name',  loginData.name);
+      window.location.href = loginData.role === 'doctor' ? '/doctor' : '/patient';
+    } catch {
+      showAlert('error', 'Network error. Please try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Create Account';
+    }
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const loginVisible = document.getElementById('login-tab').style.display !== 'none';
+      loginVisible ? doLogin() : doRegister();
+    }
+  });
+</script>
+</body>
+</html>

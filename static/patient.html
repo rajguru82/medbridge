@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedBridge — Patient Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #059669;
+      --success-light: #d1fae5;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --surface: #fff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --shadow: 0 1px 4px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Nav */
+    nav {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
+    }
+    .nav-logo { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: .9rem; color: var(--muted); }
+    .nav-user strong { color: var(--text); }
+    .btn-logout {
+      padding: 6px 14px; border: 1.5px solid var(--border);
+      background: none; border-radius: 8px; cursor: pointer;
+      font-size: .85rem; font-weight: 600; color: var(--muted);
+      transition: .15s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Main layout */
+    main { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 28px; }
+    .tab-btn {
+      flex: 1; padding: 10px 8px; border: none; background: none;
+      border-radius: 9px; cursor: pointer; font-size: .88rem; font-weight: 600;
+      color: var(--muted); transition: .2s;
+    }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-btn:hover:not(.active) { background: var(--primary-light); color: var(--primary); }
+
+    /* Cards */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    /* Form */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: .83rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 13px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: .93rem; outline: none; font-family: inherit;
+      transition: border-color .2s; background: var(--surface);
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn {
+      padding: 11px 24px; border: none; border-radius: 9px;
+      font-size: .95rem; font-weight: 700; cursor: pointer; transition: .2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-outline {
+      background: none; border: 1.5px solid var(--primary); color: var(--primary);
+    }
+    .btn-outline:hover { background: var(--primary-light); }
+    .btn-sm { padding: 7px 16px; font-size: .83rem; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #047857; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: .75rem; font-weight: 700;
+    }
+    .badge-pending  { background: var(--warning-light); color: var(--warning); }
+    .badge-scheduled{ background: var(--primary-light); color: var(--primary); }
+    .badge-completed{ background: var(--success-light); color: var(--success); }
+
+    /* AI Summary box */
+    .ai-box {
+      background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+      border: 1px solid #bfdbfe; border-radius: 10px;
+      padding: 14px 16px; margin-top: 14px;
+    }
+    .ai-box .ai-label { font-size: .75rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+    .ai-box p { font-size: .88rem; color: var(--text); line-height: 1.6; }
+    .specialist-tag {
+      display: inline-block; margin-top: 8px;
+      background: var(--primary); color: #fff;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: .78rem; font-weight: 700;
+    }
+
+    /* Case card */
+    .case-card { border-left: 4px solid var(--primary); }
+    .case-card .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .case-card .meta { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+    /* Doctor card */
+    .doctor-card { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .doctor-info .name  { font-size: 1rem; font-weight: 700; }
+    .doctor-info .specs { font-size: .83rem; color: var(--muted); margin-top: 2px; }
+
+    /* Slot grid */
+    .slot-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: none; }
+    .slot-section.open { display: block; }
+    .slot-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .slot-btn {
+      padding: 7px 14px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: .8rem; font-weight: 600;
+      cursor: pointer; background: var(--surface); color: var(--text); transition: .15s;
+    }
+    .slot-btn:hover, .slot-btn.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+
+    /* Appointment card */
+    .appt-card { border-left: 4px solid var(--success); }
+    .appt-card.scheduled { border-left-color: var(--primary); }
+    .response-box {
+      background: var(--success-light); border-radius: 8px;
+      padding: 12px; margin-top: 12px; font-size: .88rem; line-height: 1.6;
+    }
+    .response-box .label { font-size: .75rem; font-weight: 700; color: var(--success); margin-bottom: 4px; }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px; border-radius: 9px;
+      font-size: .9rem; font-weight: 500; margin-bottom: 20px;
+    }
+    .alert-success { background: var(--success-light); color: #065f46; }
+    .alert-error   { background: #fee2e2; color: #991b1b; }
+    .alert-info    { background: var(--primary-light); color: #1e40af; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .spinner {
+      width: 36px; height: 36px; margin: 0 auto 12px;
+      border: 3px solid var(--border); border-top-color: var(--primary);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty { text-align: center; padding: 48px 0; color: var(--muted); }
+    .empty .icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* Filter bar */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-bar select, .filter-bar input { flex: 1; min-width: 160px; max-width: 280px; }
+
+    /* Case selector banner */
+    .case-banner {
+      background: var(--primary-light); border: 1px solid #bfdbfe;
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+    .case-banner p { font-size: .88rem; color: #1e40af; font-weight: 500; }
+    .case-banner button { border: none; background: none; cursor: pointer; color: var(--muted); font-size: 1.1rem; }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .tabs .tab-btn { font-size: .78rem; padding: 9px 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">🏥 MedBridge</div>
+  <div class="nav-right">
+    <span class="nav-user">Welcome, <strong id="nav-name">—</strong></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<main>
+  <div id="global-alert" style="display:none"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('new-case')">➕ New Case</button>
+    <button class="tab-btn" onclick="switchTab('my-cases')">📋 My Cases</button>
+    <button class="tab-btn" onclick="switchTab('find-doctors')">🔍 Find Doctors</button>
+    <button class="tab-btn" onclick="switchTab('appointments')">📅 Appointments</button>
+  </div>
+
+  <!-- ── NEW CASE ── -->
+  <div id="tab-new-case">
+    <div class="card">
+      <h3>🩺 Describe Your Symptoms</h3>
+      <div id="case-result" style="display:none"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Age *</label>
+          <input type="number" id="age" placeholder="35" min="1" max="120" />
+        </div>
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <div style="font-size:.8rem;color:var(--muted);padding:11px 0">Our AI will analyse your symptoms and suggest the right specialist.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Describe your symptoms in detail *</label>
+        <textarea id="symptoms" placeholder="e.g. I have been experiencing chest tightness and shortness of breath for the past 3 days, especially during physical activity…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Medical history</label>
+          <textarea id="history" placeholder="e.g. Hypertension (diagnosed 2019), Type 2 diabetes…" style="min-height:70px"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Current medications</label>
+          <textarea id="medications" placeholder="e.g. Metformin 500mg, Lisinopril 10mg…" style="min-height:70px"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="submit-btn" onclick="submitCase()">🤖 Submit &amp; Analyse with AI</button>
+    </div>
+  </div>
+
+  <!-- ── MY CASES ── -->
+  <div id="tab-my-cases" style="display:none">
+    <div id="cases-list"><div class="loading"><div class="spinner"></div>Loading cases…</div></div>
+  </div>
+
+  <!-- ── FIND DOCTORS ── -->
+  <div id="tab-find-doctors" style="display:none">
+    <div id="case-banner" style="display:none" class="case-banner">
+      <p id="case-banner-text">—</p>
+      <button onclick="clearCaseSelection()" title="Clear selection">✕</button>
+    </div>
+    <div class="filter-bar">
+      <select id="specialty-filter" onchange="loadDoctors()">
+        <option value="">All Specialties</option>
+        <option>Cardiologist</option>
+        <option>Neurologist</option>
+        <option>Oncologist</option>
+        <option>Orthopedic</option>
+        <option>Gastroenterologist</option>
+        <option>Pulmonologist</option>
+        <option>Endocrinologist</option>
+        <option>General Physician</option>
+      </select>
+    </div>
+    <div id="doctors-list"><div class="loading"><div class="spinner"></div>Loading doctors…</div></div>
+  </div>
+
+  <!-- ── APPOINTMENTS ── -->
+  <div id="tab-appointments" style="display:none">
+    <div id="appts-list"><div class="loading"><div class="spinner"></div>Loading appointments…</div></div>
+  </div>
+</main>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────
+  let selectedCaseId   = null;
+  let selectedSpecialty = null;
+  let selectedDoctorId = null;
+  let selectedDoctorName = null;
+  let selectedSlot     = null;
+  let allDoctors       = [];
+
+  // ── Boot ───────────────────────────────────────────────────────────────
+  (function init() {
+    const token = localStorage.getItem('mb_token');
+    const role  = localStorage.getItem('mb_role');
+    if (!token || role !== 'patient') { window.location.href = '/'; return; }
+    document.getElementById('nav-name').textContent = localStorage.getItem('mb_name') || '—';
+  })();
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+  function authHeaders() {
+    return { 'Authorization': `Bearer ${localStorage.getItem('mb_token')}`, 'Content-Type': 'application/json' };
+  }
+
+  async function api(url, method = 'GET', body = null) {
+    const opts = { method, headers: authHeaders() };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    if (res.status === 401) { logout(); }
+    return res;
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = '/';
+  }
+
+  function showGlobalAlert(type, msg, timeout = 4000) {
+    const el = document.getElementById('global-alert');
+    el.className = 'alert alert-' + type;
+    el.textContent = msg;
+    el.style.display = '';
+    if (timeout) setTimeout(() => { el.style.display = 'none'; }, timeout);
+  }
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ── Tab switching ──────────────────────────────────────────────────────
+  const TAB_IDS = ['new-case', 'my-cases', 'find-doctors', 'appointments'];
+
+  function switchTab(name) {
+    TAB_IDS.forEach(id => {
+      document.getElementById('tab-' + id).style.display = id === name ? '' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', TAB_IDS[i] === name);
+    });
+    if (name === 'my-cases')     loadCases();
+    if (name === 'find-doctors') loadDoctors();
+    if (name === 'appointments') loadAppointments();
+  }
+
+  // ── New Case ───────────────────────────────────────────────────────────
+  async function submitCase() {
+    const age       = parseInt(document.getElementById('age').value);
+    const symptoms  = document.getElementById('symptoms').value.trim();
+    const history   = document.getElementById('history').value.trim();
+    const meds      = document.getElementById('medications').value.trim();
+
+    if (!symptoms || !age) { showGlobalAlert('error', 'Age and symptoms are required.'); return; }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = '🤖 Analysing with AI…';
+
+    try {
+      const res  = await api('/api/cases', 'POST', { symptoms, age, medical_history: history || null, current_medications: meds || null });
+      const data = await res.json();
+
+      if (!res.ok) { showGlobalAlert('error', data.detail || 'Error submitting case.'); return; }
+
+      // Show result
+      const box = document.getElementById('case-result');
+      box.style.display = '';
+      box.innerHTML = `
+        <div class="ai-box" style="margin-bottom:20px">
+          <div class="ai-label">✅ AI Case Analysis Complete</div>
+          <p>${data.ai_summary || '—'}</p>
+          <span class="specialist-tag">Recommended: ${data.specialist_type || 'General Physician'}</span>
+          <div style="margin-top:12px">
+            <button class="btn btn-primary btn-sm" onclick="goToBook(${data.id}, '${(data.specialist_type||'').replace(/'/g,"\\'")}')">
+              📅 Book ${data.specialist_type || 'Specialist'} Now
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Clear form
+      document.getElementById('age').value = '';
+      document.getElementById('symptoms').value = '';
+      document.getElementById('history').value = '';
+      document.getElementById('medications').value = '';
+    } catch {
+      showGlobalAlert('error', 'Network error. Please try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = '🤖 Submit & Analyse with AI';
+    }
+  }
+
+  function goToBook(caseId, specialty) {
+    selectedCaseId    = caseId;
+    selectedSpecialty = specialty;
+    switchTab('find-doctors');
+  }
+
+  // ── My Cases ───────────────────────────────────────────────────────────
+  async function loadCases() {
+    const el = document.getElementById('cases-list');
+    el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading cases…</div>';
+    try {
+      const res  = await api('/api/cases/my');
+      const data = await res.json();
+
+      if (!data.length) {
+        el.innerHTML = '<div class="empty"><div class="icon">📋</div><p>No cases yet. Submit your first case to get started.</p></div>';
+        return;
+      }
+
+      el.innerHTML = data.map(c => `
+        <div class="card case-card">
+          <div class="top">
+            <div>
+              <strong>Case #${c.id}</strong> — Age ${c.age}
+              <div class="meta">Submitted ${fmtDate(c.created_at)}</div>
+            </div>
+            <span class="badge badge-${c.status}">${c.status.charAt(0).toUpperCase() + c.status.slice(1)}</span>
+          </div>
+          <div style="margin-top:10px;font-size:.88rem;color:var(--muted)">${c.symptoms.length > 120 ? c.symptoms.slice(0,120)+'…' : c.symptoms}</div>
+          ${c.ai_summary ? `
+            <div class="ai-box">
+              <div class="ai-label">🤖 AI Clinical Summary</div>
+              <p>${c.ai_summary}</p>
+              <span class="specialist-tag">${c.specialist_type || 'General Physician'}</span>
+            </div>
+          ` : ''}
+          ${c.status === 'pending' ? `
+            <div style="margin-top:12px">
+              <button class="btn btn-outline btn-sm" onclick="goToBook(${c.id}, '${(c.specialist_type||'').replace(/'/g,"\\'")}')">📅 Book Specialist</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    } catch {
+      el.innerHTML = '<div class="empty"><p>Failed to load cases.</p></div>';
+    }
+  }
+
+  // ── Find Doctors ───────────────────────────────────────────────────────
+  async function loadDoctors() {
+    const el        = document.getElementById('doctors-list');
+    const specialty = document.getElementById('specialty-filter').value;
+
+    // Apply pre-selected specialty from case
+    if (selectedSpecialty && !specialty) {
+      document.getElementById('specialty-filter').value = selectedSpecialty;
+    }
+
+    const activeSpecialty = document.getElementById('specialty-filter').value;
+
+    // Update case banner
+    if (selectedCaseId) {
+      document.getElementById('case-banner').style.display = '';
+      document.getElementById('case-banner-text').textContent =
+        `Booking for Case #${selectedCaseId} · Recommended: ${selectedSpecialty || 'Specialist'}`;
+    }
+
+    el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading doctors…</div>';
+
+    try {
+      const url = activeSpecialty ? `/api/doctors?specialty=${encodeURIComponent(activeSpecialty)}` : '/api/doctors';
+      const res  = await api(url);
+      allDoctors = await res.json();
+
+      if (!allDoctors.length) {
+        el.innerHTML = '<div class="empty"><div class="icon">🩺</div><p>No doctors found for this specialty.</p></div>';
+        return;
+      }
+
+      el.innerHTML = allDoctors.map(d => `
+        <div class="card" id="doc-card-${d.id}">
+          <div class="doctor-card">
+            <div class="doctor-info">
+              <div class="name">👨‍⚕️ ${d.name}</div>
+              <div class="specs">
+                <span class="badge badge-scheduled">${d.specialty || 'General'}</span>
+                &nbsp;${d.city || '—'} &nbsp;·&nbsp; ${d.experience_years || '?'} yrs exp.
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="toggleSlots(${d.id}, '${d.name.replace(/'/g,"\\'")}')">
+              Select &amp; Book
+            </button>
+          </div>
+          <div class="slot-section" id="slots-${d.id}">
+            <label style="font-size:.83rem;font-weight:700;margin-bottom:8px;display:block">
+              Pick a slot for <strong>${d.name}</strong>
+            </label>
+            ${!selectedCaseId ? `<div style="font-size:.83rem;color:var(--danger);margin-bottom:8px">⚠️ Please go to <strong>My Cases</strong> first and click "Book Specialist" to select a case.</div>` : ''}
+            <div class="slot-grid">${generateSlots(d.id)}</div>
+            <div style="margin-top:12px">
+              <button class="btn btn-success btn-sm" id="confirm-btn-${d.id}" onclick="confirmBooking(${d.id})" disabled>
+                ✅ Confirm Appointment
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch {
+      el.innerHTML = '<div class="empty"><p>Failed to load doctors.</p></div>';
+    }
+  }
+
+  function generateSlots(doctorId) {
+    const times = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+    const slots = [];
+    for (let d = 1; d <= 7; d++) {
+      const date = new Date();
+      date.setDate(date.getDate() + d);
+      if (date.getDay() === 0) continue; // skip Sundays
+      const label = date.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+      times.forEach(t => {
+        const slotStr = `${label} at ${t}`;
+        slots.push(`<button class="slot-btn" onclick="selectSlot(this, ${doctorId}, '${slotStr}')">${label}<br/><small>${t}</small></button>`);
+      });
+    }
+    return slots.join('');
+  }
+
+  function toggleSlots(doctorId, doctorName) {
+    const section = document.getElementById(`slots-${doctorId}`);
+    const isOpen  = section.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.slot-section').forEach(s => s.classList.remove('open'));
+    if (!isOpen) {
+      section.classList.add('open');
+      selectedDoctorId   = doctorId;
+      selectedDoctorName = doctorName;
+      selectedSlot       = null;
+    }
+  }
+
+  function selectSlot(btn, doctorId, slot) {
+    document.querySelectorAll(`#slots-${doctorId} .slot-btn`).forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedSlot = slot;
+    document.getElementById(`confirm-btn-${doctorId}`).disabled = !selectedCaseId;
+    if (!selectedCaseId) showGlobalAlert('info', 'Go to "My Cases" tab and click "Book Specialist" to select a case first.', 4000);
+  }
+
+  async function confirmBooking(doctorId) {
+    if (!selectedCaseId) { showGlobalAlert('error', 'No case selected. Go to My Cases first.'); return; }
+    if (!selectedSlot)   { showGlobalAlert('error', 'Please select a time slot.'); return; }
+
+    const btn = document.getElementById(`confirm-btn-${doctorId}`);
+    btn.disabled = true; btn.textContent = 'Booking…';
+
+    try {
+      const res  = await api('/api/appointments', 'POST', {
+        case_id: selectedCaseId,
+        doctor_id: doctorId,
+        slot_datetime: selectedSlot,
+      });
+      const data = await res.json();
+
+      if (!res.ok) { showGlobalAlert('error', data.detail || 'Booking failed.'); return; }
+
+      showGlobalAlert('success', `✅ Appointment booked with ${selectedDoctorName} on ${selectedSlot}`);
+      clearCaseSelection();
+      switchTab('appointments');
+    } catch {
+      showGlobalAlert('error', 'Network error.');
+    } finally {
+      btn.disabled = false; btn.textContent = '✅ Confirm Appointment';
+    }
+  }
+
+  function clearCaseSelection() {
+    selectedCaseId = null;
+    selectedSpecialty = null;
+    document.getElementById('case-banner').style.display = 'none';
+  }
+
+  // ── Appointments ───────────────────────────────────────────────────────
+  async function loadAppointments() {
+    const el = document.getElementById('appts-list');
+    el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading…</div>';
+
+    try {
+      const [apptRes, docRes] = await Promise.all([
+        api('/api/appointments/my'),
+        api('/api/doctors'),
+      ]);
+      const appts   = await apptRes.json();
+      const doctors = await docRes.json();
+
+      const docMap = {};
+      doctors.forEach(d => { docMap[d.id] = d; });
+
+      if (!appts.length) {
+        el.innerHTML = '<div class="empty"><div class="icon">📅</div><p>No appointments yet.</p></div>';
+        return;
+      }
+
+      el.innerHTML = appts.map(a => {
+        const doc = docMap[a.doctor_id] || {};
+        return `
+          <div class="card appt-card ${a.status}">
+            <div class="top">
+              <div>
+                <strong>${doc.name || 'Doctor #' + a.doctor_id}</strong>
+                <span style="color:var(--muted);font-size:.82rem"> · ${doc.specialty || '—'}</span>
+                <div class="meta">🕐 ${a.slot_datetime} &nbsp;·&nbsp; Case #${a.case_id}</div>
+              </div>
+              <span class="badge badge-${a.status}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span>
+            </div>
+            ${a.doctor_response ? `
+              <div class="response-box">
+                <div class="label">📝 Doctor's Consultation Notes</div>
+                ${a.doctor_response}
+              </div>
+            ` : `<div style="font-size:.83rem;color:var(--muted);margin-top:10px">⏳ Awaiting doctor's response.</div>`}
+          </div>
+        `;
+      }).join('');
+    } catch {
+      el.innerHTML = '<div class="empty"><p>Failed to load appointments.</p></div>';
+    }
+  }
+</script>
+</body>
+</html>
